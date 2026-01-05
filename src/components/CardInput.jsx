@@ -54,7 +54,7 @@ const CardInput = ({ onSubmit, translations }) => {
             </p>
 
             {/* 3D Realistic Card Preview */}
-            <div style={{
+            <div className="card-preview-container" style={{
                 width: '320px',
                 height: '200px',
                 borderRadius: '16px',
@@ -180,7 +180,7 @@ const CardInput = ({ onSubmit, translations }) => {
                 </div>
 
                 {/* Name & Expiry Row */}
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+                <div className="mobile-stack" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
                     <input
                         type="text"
                         value={cardName}

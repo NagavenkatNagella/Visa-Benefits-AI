@@ -67,7 +67,8 @@ function App() {
   return (
     <div className="app-container" style={{ width: '100%', minHeight: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-      {/* Background Grid */}
+      {/* Background Flow & Grid */}
+      <div className="bg-flow"></div>
       <div className="bg-grid"></div>
 
       <SettingsModal
@@ -79,16 +80,16 @@ function App() {
       <ChatAssistant translations={t} apiKey={apiKey} lang={lang} />
 
       {/* Navbar / Top Bar */}
-      <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem' }}>
+      <div className="navbar-container" style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem', position: 'relative', zIndex: 10 }}>
         <div style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '1px' }}>
-          VISA <span style={{ color: 'var(--accent)', fontWeight: 300 }}>BENEFITS AI</span>
+          VISA <span className="text-gradient" style={{ fontWeight: 300 }}>BENEFITS AI</span>
         </div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div className="nav-controls" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <button
             onClick={() => setShowSettings(true)}
             style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: 'none',
+              background: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)',
               color: 'white',
               padding: '0.5rem',
               width: '40px',
@@ -98,6 +99,7 @@ function App() {
               cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}
+            className="hover-glow"
             title="AI Settings"
           >
             ⚙️
@@ -106,25 +108,26 @@ function App() {
             <button
               onClick={() => setShowLangMenu(!showLangMenu)}
               style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: 'none',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.1)',
                 color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '20px',
+                padding: '0.5rem 1.2rem',
+                borderRadius: '24px',
                 backdropFilter: 'blur(10px)',
                 fontSize: '0.9rem',
                 display: 'flex', alignItems: 'center', gap: '0.5rem',
                 cursor: 'pointer'
               }}
+              className="hover-glow"
             >
               🌐 {currentLangName}
             </button>
             {showLangMenu && (
               <div className="glass-panel" style={{
                 position: 'absolute', top: '120%', right: 0,
-                padding: '0.5rem', borderRadius: '12px',
-                display: 'flex', flexDirection: 'column', gap: '0.5rem',
-                minWidth: '150px', zIndex: 100
+                padding: '0.8rem', borderRadius: '16px',
+                display: 'flex', flexDirection: 'column', gap: '0.4rem',
+                minWidth: '180px', zIndex: 100
               }}>
                 {[
                   { code: 'en', name: 'English' },
@@ -136,12 +139,13 @@ function App() {
                     key={l.code}
                     onClick={() => { setLang(l.code); setShowLangMenu(false); }}
                     style={{
-                      background: lang === l.code ? 'rgba(255,255,255,0.2)' : 'transparent',
-                      border: 'none', color: 'white', textAlign: 'left',
-                      padding: '0.5rem', borderRadius: '8px', fontSize: '0.9rem',
-                      cursor: 'pointer'
+                      background: lang === l.code ? 'var(--accent)' : 'transparent',
+                      color: lang === l.code ? '#000' : 'white',
+                      border: 'none', textAlign: 'left',
+                      padding: '0.6rem 1rem', borderRadius: '10px', fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
                     }}
-                    className="hover-bg"
                   >
                     {l.name}
                   </button>
@@ -149,21 +153,36 @@ function App() {
               </div>
             )}
           </div>
+
           {user && (
-            <button
-              onClick={handleLogout}
-              style={{
-                background: 'rgba(255,59,48,0.1)',
-                border: '1px solid rgba(255,59,48,0.3)',
-                color: '#ff3b30',
-                padding: '0.5rem 1rem',
-                borderRadius: '20px',
-                fontSize: '0.9rem',
-                cursor: 'pointer'
-              }}
-            >
-              Logout
-            </button>
+            <div className="user-profile" style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.05)', padding: '0.3rem 0.3rem 0.3rem 1rem', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{user.displayName || 'User'}</span>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{user.email}</span>
+              </div>
+              <img
+                src={user.photoURL || 'https://via.placeholder.com/40'}
+                alt="Profile"
+                referrerPolicy="no-referrer"
+                style={{ width: '38px', height: '38px', borderRadius: '50%', border: '2px solid var(--accent)' }}
+              />
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: 'rgba(255,59,48,0.1)',
+                  border: 'none',
+                  color: '#ff4b40',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '20px',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                className="hover-bg"
+              >
+                Logout
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -190,7 +209,7 @@ function App() {
         ) : (
           <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', flexDirection: 'column', gap: '3rem' }}>
             {/* New Features Section */}
-            <div className="animate-fade-in" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', marginBottom: '1rem' }}>
+            <div className="feature-grid animate-fade-in" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', marginBottom: '1rem' }}>
               <SavingsEstimator translations={t} />
               <SpendChart translations={t} />
             </div>

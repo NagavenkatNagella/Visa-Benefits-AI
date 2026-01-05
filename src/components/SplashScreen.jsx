@@ -22,17 +22,17 @@ const SplashScreen = ({ onComplete }) => {
             transition: 'opacity 0.5s ease',
             opacity: visible ? 1 : 0
         }}>
-            <div style={{ position: 'relative' }}>
-                <h1 className="text-gradient" style={{ fontSize: '4rem', fontWeight: 800, letterSpacing: '4px', textAlign: 'center' }}>
+            <div style={{ position: 'relative', width: '90%', maxWidth: '600px', textAlign: 'center' }}>
+                <h1 className="text-gradient" style={{ fontSize: 'clamp(3rem, 15vw, 5rem)', fontWeight: 800, letterSpacing: '4px', textAlign: 'center', margin: 0 }}>
                     VISA
                 </h1>
                 <p style={{
-                    fontSize: '1.5rem',
+                    fontSize: 'clamp(1rem, 5vw, 1.8rem)',
                     color: 'var(--accent)',
-                    letterSpacing: '8px',
+                    letterSpacing: 'clamp(4px, 2vw, 8px)',
                     textAlign: 'center',
                     textTransform: 'uppercase',
-                    marginTop: '1rem'
+                    marginTop: '0.5rem'
                 }}>
                     BENEFITS AI
                 </p>

@@ -1,4 +1,3 @@
-
 export const generateAIInsight = async (apiKey, language, benefitTitle, terms) => {
     const prompt = `
     You are a helpful Visa Benefits Assistant.
@@ -11,7 +10,7 @@ export const generateAIInsight = async (apiKey, language, benefitTitle, terms) =
   `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -24,7 +23,10 @@ export const generateAIInsight = async (apiKey, language, benefitTitle, terms) =
         });
 
         const data = await response.json();
-        return data.candidates[0].content.parts[0].text;
+        if (data && data.candidates && data.candidates[0] && data.candidates[0].content) {
+            return data.candidates[0].content.parts[0].text;
+        }
+        return null;
     } catch (error) {
         console.error("AI Error:", error);
         return null;
@@ -41,7 +43,7 @@ export const generateChatResponse = async (apiKey, language, userMessage) => {
   `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -58,9 +60,7 @@ export const generateChatResponse = async (apiKey, language, userMessage) => {
             return data.candidates[0].content.parts[0].text;
         } else {
             console.error("Gemini API Error (Data structure):", data);
-            if (data.error) {
-                return `AI Error: ${data.error.message}`;
-            }
+            // Return null so fallback dataset logic can take over in ChatAssistant.jsx
             return null;
         }
 

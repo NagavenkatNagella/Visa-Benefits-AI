@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateChatResponse } from '../utils/gemini';
+import { benefitsData, benefitTranslations } from '../data/benefitsData';
+import { faqData } from '../data/faqData';
 
 const ChatAssistant = ({ translations, apiKey, lang }) => {
     // Fallback
@@ -14,15 +16,38 @@ const ChatAssistant = ({ translations, apiKey, lang }) => {
 
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
+    const [suggestedQuestions, setSuggestedQuestions] = useState([]);
 
     // Initialize messages properly when translations are available
     useEffect(() => {
         setMessages([
-            { text: t.chatWelcome, isUser: false },
-            { text: t.chatUserEx, isUser: true },
-            { text: t.chatBotEx, isUser: false }
+            { text: t.chatWelcome, isUser: false }
         ]);
-    }, [t.chatWelcome]); // Re-run if language changes
+
+        const currentLang = lang || 'en';
+
+        // Define prompt structures per language
+        const promptTemplates = {
+            en: { prefix: "What is ", suffix: "?" },
+            ta: { prefix: "", suffix: " என்றால் என்ன?" },
+            te: { prefix: "", suffix: " అంటే ఏమిటి?" },
+            hi: { prefix: "", suffix: " क्या है?" }
+        };
+        const template = promptTemplates[currentLang] || promptTemplates.en;
+
+        // Generate suggested questions from FAQ and Benefits based on language
+        const translatedPool = [
+            ...faqData.map(f => f.question[currentLang] || f.question.en),
+            ...benefitsData.filter(b => b.id < 6).map(b => {
+                const bTrans = benefitTranslations[b.id]?.[currentLang];
+                const title = bTrans?.title || b.title;
+                return `${template.prefix}${title}${template.suffix}`;
+            })
+        ];
+
+        const shuffled = [...translatedPool].sort(() => 0.5 - Math.random());
+        setSuggestedQuestions(shuffled.slice(0, 3));
+    }, [t.chatWelcome, lang]);
 
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -34,38 +59,82 @@ const ChatAssistant = ({ translations, apiKey, lang }) => {
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, isOpen]);
+    }, [messages, isOpen, isTyping]);
 
-    const handleSend = async () => {
-        if (!inputValue.trim()) return;
+    const handleSend = async (textOverride) => {
+        const textToSend = textOverride || inputValue;
+        if (!textToSend.trim()) return;
 
-        const userMsg = { text: inputValue, isUser: true };
+        const userMsg = { text: textToSend, isUser: true };
         setMessages(prev => [...prev, userMsg]);
         setInputValue('');
         setIsTyping(true);
 
-        if (apiKey && apiKey !== 'undefined' && apiKey !== 'null') {
-            try {
-                const aiResponse = await generateChatResponse(apiKey, lang || 'en', userMsg.text);
-                if (aiResponse) {
-                    setMessages(prev => [...prev, { text: aiResponse, isUser: false }]);
-                    setIsTyping(false);
-                    return;
+        const currentLang = lang || 'en';
+
+        const tryGenerateResponse = async (retryCount = 0) => {
+            if (apiKey && apiKey !== 'undefined' && apiKey !== 'null') {
+                try {
+                    const aiResponse = await generateChatResponse(apiKey, currentLang, textToSend);
+                    if (aiResponse) {
+                        return aiResponse;
+                    }
+                } catch (e) {
+                    console.error(`Chat Error (Attempt ${retryCount + 1})`, e);
+                    if (retryCount < 1) {
+                        return await tryGenerateResponse(retryCount + 1);
+                    }
                 }
-            } catch (e) {
-                console.error("Chat Error", e);
             }
-        }
+            return null;
+        };
 
-        // Fallback to mock response if AI fails or no key
-        setTimeout(() => {
-            let responseText = t.chatResponseDefault;
-            const lowerInput = userMsg.text.toLowerCase();
-            if (lowerInput.includes('lounge')) responseText = "Check the Travel section for Lounge access!";
+        const aiResponse = await tryGenerateResponse();
 
-            setMessages(prev => [...prev, { text: responseText, isUser: false }]);
+        if (aiResponse) {
+            setMessages(prev => [...prev, { text: aiResponse, isUser: false }]);
             setIsTyping(false);
-        }, 1000);
+        } else {
+            // Fallback to dataset-based matching if AI fails
+            setTimeout(() => {
+                let responseText = t.chatResponseDefault;
+                const lowerInput = textToSend.toLowerCase();
+
+                // 1. Try to find a match in faqData first
+                const faqMatch = faqData.find(f => {
+                    const q = (f.question[currentLang] || f.question.en).toLowerCase();
+                    return lowerInput.includes(q) || q.split(' ').some(word => word.length > 4 && lowerInput.includes(word.toLowerCase()));
+                });
+
+                if (faqMatch) {
+                    responseText = faqMatch.answer[currentLang] || faqMatch.answer.en;
+                } else {
+                    // 2. Try to find a match in benefitsData
+                    const benefitMatch = benefitsData.find(b => {
+                        const bTrans = benefitTranslations[b.id]?.[currentLang];
+                        const title = (bTrans?.title || b.title).toLowerCase();
+                        const cat = b.category.toLowerCase();
+                        return lowerInput.includes(title) || lowerInput.includes(cat);
+                    });
+
+                    if (benefitMatch) {
+                        const bTrans = benefitTranslations[benefitMatch.id]?.[currentLang] || benefitMatch;
+                        responseText = `${bTrans.title}: ${bTrans.description} \n\nTerms: ${bTrans.terms}`;
+                    } else if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('வணக்கம்') || lowerInput.includes('नमस्ते')) {
+                        const helloResp = {
+                            en: "Hello! How can I assist you with your Visa benefits today?",
+                            ta: "வணக்கம்! உங்கள் விசா சலுகைகள் குறித்து நான் உங்களுக்கு இன்று எவ்வாறு உதவ முடியும்?",
+                            te: "నమస్తే! మీ వీసా ప్రయోజనాల గురించి నేను మీకు ఈరోజు ఎలా సహాయపడగలను?",
+                            hi: "नमस्ते! मैं आज आपके वीज़ा लाभों के बारे में आपकी किस प्रकार सहायता कर सकता हूँ?"
+                        };
+                        responseText = helloResp[currentLang] || helloResp.en;
+                    }
+                }
+
+                setMessages(prev => [...prev, { text: responseText, isUser: false }]);
+                setIsTyping(false);
+            }, 800);
+        }
     };
 
     const handleKeyPress = (e) => {
@@ -73,41 +142,74 @@ const ChatAssistant = ({ translations, apiKey, lang }) => {
     };
 
     return (
-        <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 100 }}>
+        <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}>
             {isOpen ? (
-                <div className="glass-panel animate-fade-in" style={{
-                    width: '350px', height: '500px',
+                <div className="glass-panel animate-fade-in chat-assistant-window" style={{
+                    width: '380px', height: '550px',
                     display: 'flex', flexDirection: 'column',
                     border: '1px solid var(--accent)',
-                    boxShadow: '0 0 50px rgba(0,0,0,0.5)',
-                    background: 'rgba(15, 12, 41, 0.95)'
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
+                    background: 'rgba(5, 5, 5, 0.95)',
+                    padding: '1.5rem',
+                    overflow: 'hidden'
                 }}>
                     <div style={{ paddingBottom: '1rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '1.2rem', color: 'var(--accent)' }}>{t.chatTitle}</h3>
-                        <button onClick={() => setIsOpen(false)} style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.2rem', cursor: 'pointer' }}>×</button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#4cd964', boxShadow: '0 0 10px #4cd964' }}></div>
+                            <h3 style={{ fontSize: '1.1rem', color: 'var(--accent)', fontWeight: 600 }}>{t.chatTitle}</h3>
+                        </div>
+                        <button onClick={() => setIsOpen(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'white', fontSize: '1rem', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
                     </div>
 
-                    <div style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
+                    <div className="custom-scrollbar" style={{ flex: 1, padding: '1rem 0', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {messages.map((msg, index) => (
-                            <div key={index} style={{ marginBottom: '1rem', textAlign: msg.isUser ? 'right' : 'left' }}>
+                            <div key={index} style={{ textAlign: msg.isUser ? 'right' : 'left' }}>
                                 <div style={{
-                                    background: msg.isUser ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.1)',
-                                    padding: '0.8rem',
-                                    borderRadius: msg.isUser ? '12px 12px 0 12px' : '12px 12px 12px 0',
-                                    maxWidth: '80%',
+                                    background: msg.isUser ? 'var(--accent)' : 'rgba(255,255,255,0.08)',
+                                    padding: '0.8rem 1rem',
+                                    borderRadius: msg.isUser ? '18px 18px 2px 18px' : '18px 18px 18px 2px',
+                                    maxWidth: '85%',
                                     display: 'inline-block',
-                                    color: 'white',
-                                    fontSize: '0.9rem'
+                                    color: msg.isUser ? '#000' : 'white',
+                                    fontSize: '0.9rem',
+                                    lineHeight: '1.4',
+                                    boxShadow: msg.isUser ? '0 4px 15px rgba(0, 210, 255, 0.3)' : 'none'
                                 }}>
                                     {msg.text}
                                 </div>
                             </div>
                         ))}
                         {isTyping && (
-                            <div style={{ textAlign: 'left', marginBottom: '1rem' }}>
-                                <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.5rem 1rem', borderRadius: '12px', display: 'inline-block' }}>
+                            <div style={{ textAlign: 'left' }}>
+                                <div style={{ background: 'rgba(255,255,255,0.08)', padding: '0.6rem 1rem', borderRadius: '18px 18px 18px 2px', display: 'inline-block' }}>
                                     <span className="typing-dot">.</span><span className="typing-dot">.</span><span className="typing-dot">.</span>
                                 </div>
+                            </div>
+                        )}
+
+                        {!isTyping && suggestedQuestions.length > 0 && messages.length < 3 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>Suggested:</span>
+                                {suggestedQuestions.map((q, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => handleSend(q)}
+                                        style={{
+                                            background: 'rgba(0, 210, 255, 0.1)',
+                                            border: '1px solid rgba(0, 210, 255, 0.2)',
+                                            color: 'var(--accent)',
+                                            padding: '0.5rem 1rem',
+                                            borderRadius: '15px',
+                                            fontSize: '0.8rem',
+                                            textAlign: 'left',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        className="hover-glow"
+                                    >
+                                        {q}
+                                    </button>
+                                ))}
                             </div>
                         )}
                         <div ref={messagesEndRef} />
@@ -122,25 +224,28 @@ const ChatAssistant = ({ translations, apiKey, lang }) => {
                             onKeyPress={handleKeyPress}
                             style={{
                                 flex: 1,
-                                background: 'rgba(0,0,0,0.3)',
-                                border: 'none',
-                                borderRadius: '20px',
-                                padding: '0.8rem',
+                                background: 'rgba(255,255,255,0.05)',
+                                border: '1px solid rgba(255,255,255,0.1)',
+                                borderRadius: '24px',
+                                padding: '0.8rem 1.2rem',
                                 color: 'white',
-                                outline: 'none'
+                                outline: 'none',
+                                fontSize: '0.9rem'
                             }}
                         />
                         <button
-                            onClick={handleSend}
+                            onClick={() => handleSend()}
                             style={{
                                 background: 'var(--accent)',
                                 border: 'none',
-                                width: '40px',
-                                height: '40px',
+                                width: '45px',
+                                height: '45px',
                                 borderRadius: '50%',
-                                color: '#0f0c29',
+                                color: '#000',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                cursor: 'pointer'
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 15px rgba(0, 210, 255, 0.4)',
+                                fontSize: '1.2rem'
                             }}>
                             ➤
                         </button>
@@ -148,17 +253,17 @@ const ChatAssistant = ({ translations, apiKey, lang }) => {
                 </div>
             ) : (
                 <button
-                    className="hover-glow"
+                    className="hover-glow animate-float"
                     onClick={() => setIsOpen(true)}
                     style={{
-                        width: '60px',
-                        height: '60px',
+                        width: '65px',
+                        height: '65px',
                         borderRadius: '50%',
-                        background: 'var(--primary-gradient)',
+                        background: 'linear-gradient(135deg, var(--accent) 0%, #0072ff 100%)',
                         border: 'none',
                         color: 'white',
                         fontSize: '2rem',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                        boxShadow: '0 10px 40px rgba(0, 210, 255, 0.4)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         cursor: 'pointer'
                     }}
@@ -173,6 +278,13 @@ const ChatAssistant = ({ translations, apiKey, lang }) => {
                 @keyframes typing { 
                     0%, 80%, 100% { transform: scale(0); opacity: 0.5; } 
                     40% { transform: scale(1); opacity: 1; } 
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
                 }
             `}</style>
         </div>

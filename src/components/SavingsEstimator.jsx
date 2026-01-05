@@ -45,7 +45,7 @@ const SavingsEstimator = ({ translations }) => {
                 />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+            <div className="mobile-stack" style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
                 <div style={{
                     flex: 1,
                     background: 'rgba(0, 210, 255, 0.1)',

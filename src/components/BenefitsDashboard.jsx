@@ -76,7 +76,7 @@ const BenefitsDashboard = ({ translations, lang, cardTier, apiKey }) => {
                         <span style={{ fontSize: '2rem' }}>✨</span>
                         <h3 style={{ fontSize: '1.5rem', fontWeight: 600 }}>{translations.recommended}</h3>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center' }}>
+                    <div className="mobile-stack" style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', alignItems: 'center' }}>
                         <div style={{ flex: 1 }}>
                             <h4 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--accent)' }}>{recommendation.title}</h4>
                             <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>{recommendation.description}</p>
@@ -91,7 +91,7 @@ const BenefitsDashboard = ({ translations, lang, cardTier, apiKey }) => {
             )}
 
             {/* Benefits Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
                 {filteredBenefits.map(benefit => (
                     <div key={benefit.id} className="glass-panel hover-scale" style={{ display: 'flex', flexDirection: 'column' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '1rem' }}>
