@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { generateChatResponse } from '../utils/gemini';
 
-const ChatAssistant = ({ translations }) => {
+const ChatAssistant = ({ translations, apiKey, lang }) => {
     // Fallback
     const t = translations || {
         chatTitle: "Visa Assistant",
@@ -43,17 +44,28 @@ const ChatAssistant = ({ translations }) => {
         setInputValue('');
         setIsTyping(true);
 
-        // Simple mock response logic or Gemini integration if key exists
-        setTimeout(async () => {
-            let responseText = t.chatResponseDefault; // Use translated default
+        if (apiKey && apiKey !== 'undefined' && apiKey !== 'null') {
+            try {
+                const aiResponse = await generateChatResponse(apiKey, lang || 'en', userMsg.text);
+                if (aiResponse) {
+                    setMessages(prev => [...prev, { text: aiResponse, isUser: false }]);
+                    setIsTyping(false);
+                    return;
+                }
+            } catch (e) {
+                console.error("Chat Error", e);
+            }
+        }
 
-            // Basic keyword matching for demo (Keeping simple English keywords for functionality, but response could be improved)
+        // Fallback to mock response if AI fails or no key
+        setTimeout(() => {
+            let responseText = t.chatResponseDefault;
             const lowerInput = userMsg.text.toLowerCase();
-            if (lowerInput.includes('lounge')) responseText = "Check the Travel section for Lounge access!"; // Logic simplification for now
+            if (lowerInput.includes('lounge')) responseText = "Check the Travel section for Lounge access!";
 
             setMessages(prev => [...prev, { text: responseText, isUser: false }]);
             setIsTyping(false);
-        }, 1500);
+        }, 1000);
     };
 
     const handleKeyPress = (e) => {

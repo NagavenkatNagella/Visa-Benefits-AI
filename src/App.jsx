@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CardInput from './components/CardInput';
 import BenefitsDashboard from './components/BenefitsDashboard';
 import SavingsEstimator from './components/SavingsEstimator';
@@ -6,18 +6,35 @@ import SpendChart from './components/SpendChart';
 import ChatAssistant from './components/ChatAssistant';
 import SettingsModal from './components/SettingsModal';
 import SplashScreen from './components/SplashScreen';
+import Login from './components/Login';
 import { translations, cardTiers } from './data/benefitsData';
+import { auth, signOut } from './utils/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [hasEnteredCard, setHasEnteredCard] = useState(false);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [lang, setLang] = useState('en');
   const [cardTier, setCardTier] = useState(cardTiers.CLASSIC); // Default
   const [showSettings, setShowSettings] = useState(false);
   const [showLangMenu, setShowLangMenu] = useState(false); // To toggle dropdown
+
+  // Monitor Auth State
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    return () => unsubscribe();
+  }, []);
+
   // Trigger re-render when key changes so dashboards update
-  const [apiKey, setApiKey] = useState(localStorage.getItem('gemini_key'));
+  const [apiKey, setApiKey] = useState(() => {
+    const saved = localStorage.getItem('gemini_key');
+    if (saved && saved !== 'null' && saved !== 'undefined') return saved;
+    return import.meta.env.VITE_GEMINI_KEY || 'AIzaSyB7zQZpheBxSd_rFKuRPY9VEeCevDiskzw';
+  });
 
   const t = translations[lang];
   const langNames = { en: 'English', ta: 'தமிழ்', te: 'తెలుగు', hi: 'हिंदी' };
@@ -32,6 +49,15 @@ function App() {
       setLoading(false);
       setHasEnteredCard(true);
     }, 2000);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setHasEnteredCard(false);
+    } catch (error) {
+      console.error("Logout Error:", error);
+    }
   };
 
   if (showSplash) {
@@ -50,7 +76,7 @@ function App() {
         onSave={(key) => setApiKey(key)}
       />
 
-      <ChatAssistant translations={t} />
+      <ChatAssistant translations={t} apiKey={apiKey} lang={lang} />
 
       {/* Navbar / Top Bar */}
       <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem' }}>
@@ -123,6 +149,22 @@ function App() {
               </div>
             )}
           </div>
+          {user && (
+            <button
+              onClick={handleLogout}
+              style={{
+                background: 'rgba(255,59,48,0.1)',
+                border: '1px solid rgba(255,59,48,0.3)',
+                color: '#ff3b30',
+                padding: '0.5rem 1rem',
+                borderRadius: '20px',
+                fontSize: '0.9rem',
+                cursor: 'pointer'
+              }}
+            >
+              Logout
+            </button>
+          )}
         </div>
       </div>
 
@@ -140,6 +182,8 @@ function App() {
           <p>{t.analyzing}</p>
           <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
         </div>
+      ) : !user ? (
+        <Login onLoginSuccess={(u) => setUser(u)} />
       ) : (
         !hasEnteredCard ? (
           <CardInput onSubmit={handleCardSubmit} translations={t} />
@@ -151,7 +195,7 @@ function App() {
               <SpendChart translations={t} />
             </div>
 
-            <BenefitsDashboard translations={t} lang={lang} cardTier={cardTier} />
+            <BenefitsDashboard translations={t} lang={lang} cardTier={cardTier} apiKey={apiKey} />
           </div>
         )
       )}

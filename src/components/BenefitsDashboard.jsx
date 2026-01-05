@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { benefitsData, benefitTranslations } from '../data/benefitsData';
 import { generateAIInsight } from '../utils/gemini';
 
-const BenefitsDashboard = ({ translations, lang, cardTier }) => {
+const BenefitsDashboard = ({ translations, lang, cardTier, apiKey }) => {
     const [expandedId, setExpandedId] = useState(null);
     const [aiInsights, setAiInsights] = useState({});
     const [loadingAI, setLoadingAI] = useState({});
@@ -25,7 +25,6 @@ const BenefitsDashboard = ({ translations, lang, cardTier }) => {
         setExpandedId(isExpanding ? id : null);
 
         if (isExpanding) {
-            const apiKey = localStorage.getItem('gemini_key');
             if (apiKey && !aiInsights[`${id}-${lang}`]) {
                 setLoadingAI(prev => ({ ...prev, [id]: true }));
                 const benefit = benefitsData.find(b => b.id === id);
@@ -133,7 +132,7 @@ const BenefitsDashboard = ({ translations, lang, cardTier }) => {
                                 <div style={{ background: 'rgba(0, 210, 255, 0.1)', padding: '0.75rem', borderRadius: '8px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
                                         <p style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 600 }}>AI Simplified:</p>
-                                        {localStorage.getItem('gemini_key') && (
+                                        {apiKey && (
                                             <span style={{ fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px', background: 'rgba(0, 210, 255, 0.2)', color: 'var(--accent)' }}>LIVE GEMINI 1.5</span>
                                         )}
                                     </div>
