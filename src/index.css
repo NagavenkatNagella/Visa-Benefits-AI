@@ -204,6 +204,15 @@ button {
   z-index: -2;
 }
 
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 1024px) {
   .app-container {
@@ -272,9 +281,16 @@ button {
     font-size: 0.85rem !important;
   }
 
+  /* Improved Card Preview Scaling */
   .card-preview-container {
-    transform: scale(0.85);
-    margin: -1rem 0 !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    aspect-ratio: 1.586 !important;
+    /* Credit card ratio */
+    height: auto !important;
+    margin: 0 auto 2rem auto !important;
+    transform: none !important;
+    /* Remove fixed scaling, use fluid width */
   }
 
   .mobile-stack {
@@ -283,9 +299,42 @@ button {
 
   .chat-assistant-window {
     width: calc(100% - 2rem) !important;
-    height: 80vh !important;
+    height: 70vh !important;
+    /* Slightly reduced to avoid keyboard issues */
     bottom: 1rem !important;
     right: 1rem !important;
     left: 1rem !important;
+  }
+}
+
+/* Landscape Mode Fixes */
+@media (max-height: 600px) and (orientation: landscape) {
+  .chat-assistant-window {
+    height: 85vh !important;
+    bottom: 0.5rem !important;
+  }
+
+  .navbar-container {
+    margin-bottom: 1rem !important;
+  }
+
+  .app-container {
+    padding-top: 1rem !important;
+  }
+}
+
+/* Small Foldable/Watch Fixes */
+@media (max-width: 320px) {
+  .app-container {
+    padding: 0.5rem !important;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  .nav-controls button {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
   }
 }

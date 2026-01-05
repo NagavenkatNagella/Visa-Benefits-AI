@@ -17,7 +17,7 @@ const SpendChart = ({ translations }) => {
     ];
 
     return (
-        <div className="glass-panel hover-scale" style={{ flex: 1, minWidth: '300px' }}>
+        <div className="glass-panel hover-scale" style={{ flex: 1, minWidth: '280px' }}>
             <h3 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 📊 {t.spendTitle}
             </h3>

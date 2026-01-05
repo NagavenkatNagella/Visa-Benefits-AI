@@ -22,7 +22,7 @@ const SettingsModal = ({ isOpen, onClose, onSave }) => {
             background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
         }}>
-            <div className="glass-panel" style={{ width: '400px', background: '#0f0c29', position: 'relative', overflow: 'hidden' }}>
+            <div className="glass-panel" style={{ width: '90%', maxWidth: '400px', background: '#0f0c29', position: 'relative', overflow: 'hidden' }}>
 
                 {isSaved ? (
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2rem' }}>

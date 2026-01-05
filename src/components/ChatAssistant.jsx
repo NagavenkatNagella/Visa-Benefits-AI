@@ -145,7 +145,8 @@ const ChatAssistant = ({ translations, apiKey, lang }) => {
         <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 1000 }}>
             {isOpen ? (
                 <div className="glass-panel animate-fade-in chat-assistant-window" style={{
-                    width: '380px', height: '550px',
+                    width: 'clamp(300px, 90vw, 380px)',
+                    height: 'clamp(400px, 80vh, 550px)',
                     display: 'flex', flexDirection: 'column',
                     border: '1px solid var(--accent)',
                     boxShadow: '0 20px 60px rgba(0,0,0,0.8)',

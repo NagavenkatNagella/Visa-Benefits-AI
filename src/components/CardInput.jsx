@@ -55,12 +55,13 @@ const CardInput = ({ onSubmit, translations }) => {
 
             {/* 3D Realistic Card Preview */}
             <div className="card-preview-container" style={{
-                width: '320px',
-                height: '200px',
+                width: '100%',
+                maxWidth: '320px',
+                aspectRatio: '1.586',
                 borderRadius: '16px',
                 background: selectedTier.color,
                 boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-                padding: '20px',
+                padding: '6%', /* Percentage padding for scaling */
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -81,21 +82,21 @@ const CardInput = ({ onSubmit, translations }) => {
                 }}></div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ fontStyle: 'italic', fontWeight: 900, fontSize: '1.2rem', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>VISA</div>
-                    <div style={{ fontSize: '0.8rem', opacity: 0.8, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>{selectedTier.name}</div>
+                    <div style={{ fontStyle: 'italic', fontWeight: 900, fontSize: 'clamp(1rem, 5cqw, 1.2rem)', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>VISA</div>
+                    <div style={{ fontSize: 'clamp(0.6rem, 3cqw, 0.8rem)', opacity: 0.8, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>{selectedTier.name}</div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <div style={{ width: '40px', height: '30px', background: 'linear-gradient(to bottom, #eecda3, #ef629f)', borderRadius: '4px' }}></div>
-                    <div style={{ fontSize: '1.2rem', letterSpacing: '2px', textShadow: '0 2px 2px rgba(0,0,0,0.5)', fontFamily: 'monospace' }}>
+                <div style={{ display: 'flex', gap: '3%', alignItems: 'center' }}>
+                    <div style={{ width: '13%', aspectRatio: '1.3', background: 'linear-gradient(to bottom, #eecda3, #ef629f)', borderRadius: '4px' }}></div>
+                    <div style={{ fontSize: 'clamp(0.9rem, 5cqw, 1.2rem)', letterSpacing: '2px', textShadow: '0 2px 2px rgba(0,0,0,0.5)', fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden' }}>
                         {cardNumber || '•••• •••• •••• ••••'}
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', opacity: 0.8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'clamp(0.5rem, 2.5cqw, 0.7rem)', opacity: 0.8 }}>
                     <div style={{ textAlign: 'left' }}>
                         <div>CARD HOLDER</div>
-                        <div style={{ fontSize: '0.9rem', letterSpacing: '1px', textTransform: 'uppercase' }}>{cardName || 'YOUR NAME'}</div>
+                        <div style={{ fontSize: 'clamp(0.7rem, 3.5cqw, 0.9rem)', letterSpacing: '1px', textTransform: 'uppercase' }}>{cardName || 'YOUR NAME'}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                         <div>VALID THRU</div>

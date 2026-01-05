@@ -65,7 +65,7 @@ function App() {
   }
 
   return (
-    <div className="app-container" style={{ width: '100%', minHeight: '100vh', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="app-container">
 
       {/* Background Flow & Grid */}
       <div className="bg-flow"></div>
